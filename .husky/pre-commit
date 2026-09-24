@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+echo "==> [pre-commit] ESLint"
+npm run lint
+
+echo "==> [pre-commit] Unit tests"
+npm test
+
+echo "==> [pre-commit] Trivy secret scan"
+if ! command -v trivy >/dev/null 2>&1; then
+  echo "ERROR: Trivy is required by the secure development baseline but is not installed or is not in PATH."
+  echo "Install Trivy before committing. Do not bypass the hook with --no-verify."
+  exit 1
+fi
+
+trivy fs --scanners secret --exit-code 1 .
+
+echo "==> [pre-commit] All controls passed"
